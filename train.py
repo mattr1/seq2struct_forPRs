@@ -13,6 +13,7 @@ from seq2struct import ast_util
 from seq2struct import datasets
 from seq2struct import models
 from seq2struct import optimizers
+from seq2struct import batching
 
 from seq2struct.utils import registry
 from seq2struct.utils import saver as saver_mod
