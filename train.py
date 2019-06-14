@@ -29,7 +29,11 @@ class TrainConfig:
 
     batch_size = attr.ib(default=32)
     eval_batch_size = attr.ib(default=32)
+
+    # max_steps specifies how many total steps the model should train for, including those it had previously trained if loading a checkpoint
     max_steps = attr.ib(default=100000)
+    # steps specifies how many steps to run, regardless of how many the current model already reached when loaded. 0 means ignore and use max_steps
+    steps = attr.ib(default=0)
     num_eval_items = attr.ib(default=None)
     eval_on_train = attr.ib(default=True)
     eval_on_val = attr.ib(default=True)
@@ -166,10 +170,11 @@ def main():
             collate_fn=lambda x: x)
 
     # 4. Start training loop
+    initial_last_step = last_step
     with data_random:
         for batch in train_data_loader:
             # Quit if too long
-            if last_step >= train_config.max_steps:
+            if last_step >= train_config.max_steps or (train_config.steps != 0 and last_step - initial_last_step >= train_config.steps):
                 break
 
             # Evaluate model
@@ -195,6 +200,9 @@ def main():
             # Run saver
             if last_step % train_config.save_every_n == 0:
                 saver.save(args.logdir, last_step)
+
+        # Save final model
+        saver.save(args.logdir, last_step)
 
 
 if __name__ == '__main__':
